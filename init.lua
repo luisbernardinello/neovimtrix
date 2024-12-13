@@ -1,5 +1,6 @@
 require('keymaps')
 require('plugins.lazy')
+
 require('plugins.which-key')
 require('plugins.misc')
 require('plugins.lualine')

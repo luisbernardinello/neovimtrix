@@ -18,38 +18,44 @@ wk.setup({
       g = true,
     },
   },
-  window = {
+  win = {
     border = "rounded",
-    position = "bottom",
-    margin = { 1, 0, 1, 0 },
-    padding = { 2, 2, 2, 2 },
+    no_overlap = true,
+    padding = { 1, 1 }, -- Reduzido para menos espaçamento
+    title = true,
+    title_pos = "center",
+    zindex = 1000,
   },
   layout = {
-    spacing = 6,
-    align = "left",
+    spacing = 4, -- Ajustado para se parecer com o original
+    width = { min = 20 }, -- Largura mínima das colunas
   },
-  ignore_missing = false,
-  hidden = { "<silent>", "<cmd>", "<Cmd>", "<CR>", "call", "lua", "^:", "^ " },
-  triggers = "auto",
+  show_help = true,
+  show_keys = true,
+  icons = {
+    breadcrumb = "»",
+    separator = "➜",
+    group = "+",
+    mappings = true,
+  },
 })
 
--- open terminals
+-- Função para abrir terminais
 local function open_terminal(direction, position)
   local Terminal = require("toggleterm.terminal").Terminal
-
-  local cwd = vim.fn.expand("%:p:h") -- diretório do arquivo atual
+  local cwd = vim.fn.expand("%:p:h") -- Caminho do diretório atual
   if cwd == "" or vim.bo.filetype == "" then
-    cwd = nil -- diretório padrão caso nenhum arquivo esteja aberto
+    cwd = nil -- Caminho padrão
   end
 
-  local size = (direction == "horizontal" and 10) or nil -- tamanho para horizontais
+  local size = (direction == "horizontal" and 10) or nil
   local term = Terminal:new({
     direction = direction,
     size = size,
-    dir = cwd, -- diretório inicial
-    on_open = function(term)
+    dir = cwd,
+    on_open = function()
       if position == "above" then
-        vim.cmd("wincmd K") -- joga o terminal para cima
+        vim.cmd("wincmd K")
       end
     end,
   })
@@ -57,8 +63,7 @@ local function open_terminal(direction, position)
   term:toggle()
 end
 
-
--- Switch windows
+-- Função para alternar janelas
 local function switch_to_window(number)
   local windows = vim.api.nvim_list_wins()
   if windows[number] then
@@ -68,111 +73,87 @@ local function switch_to_window(number)
   end
 end
 
-wk.register({
-  -- Atribui numeros as janelas
-  ["1"] = { function() switch_to_window(1) end, "Window 1" },
-  ["2"] = { function() switch_to_window(2) end, "Window 2" },
-  ["3"] = { function() switch_to_window(3) end, "Window 3" },
-  ["4"] = { function() switch_to_window(4) end, "Window 4" },
-  ["5"] = { function() switch_to_window(5) end, "Window 5" },
-  ["6"] = { function() switch_to_window(6) end, "Window 6" },
-  ["7"] = { function() switch_to_window(7) end, "Window 7" },
-  ["8"] = { function() switch_to_window(8) end, "Window 8" },
-  ["9"] = { function() switch_to_window(9) end, "Window 9" },
+-- Mapeamentos
+wk.add({
+
+  -- Grupos
+  { "<leader>b", group = "Buffers" },
+  { "<leader>w", group = "Windows" },
+  { "<leader>l", group = "LSP/Run" },
+  { "<leader>t", group = "Toggles" },
+  { "<leader>g", group = "Git" },
+  { "<leader>d", group = "Diagnostics" },
+  { "<leader>s", group = "Search" },
 
 
+  -- Alternar janelas numeradas
+  { "<leader>1", function() switch_to_window(1) end, desc = "Window 1" },
+  { "<leader>2", function() switch_to_window(2) end, desc = "Window 2" },
+  { "<leader>3", function() switch_to_window(3) end, desc = "Window 3" },
+  { "<leader>4", function() switch_to_window(4) end, desc = "Window 4" },
 
   -- Buffers
-  b = {
-    name = "Buffers",
-    n = { ":bnext<CR>", "Next Buffer" },
-    p = { ":bprevious<CR>", "Previous Buffer" },
-    d = { ":bdelete<CR>", "Delete Buffer" },
-    l = { ":Telescope buffers<CR>", "List Buffers" },
-  },
+  { "<leader>bn", ":bnext<CR>", desc = "Next Buffer" },
+  { "<leader>bp", ":bprevious<CR>", desc = "Previous Buffer" },
+  { "<leader>bd", ":bdelete<CR>", desc = "Delete Buffer" },
+  { "<leader>bl", ":Telescope buffers<CR>", desc = "List Buffers" },
 
-  -- Janela e Layouts
-  w = {
-    name = "Windows",
-    s = { function()
-      vim.cmd("split")   -- split horizontal
-      vim.cmd("enew")    -- novo buffer vazio
-    end, "Horizontal Split (Empty)" },
-    v = { function()
-      vim.cmd("vsplit")  -- split vertical
-      vim.cmd("enew")    -- novo buffer vazio
-    end, "Vertical Split (Empty)" },
-    c = { function()
-      local current_buf = vim.api.nvim_get_current_buf() -- buffer atual
-      vim.cmd("close")                                  -- fecha a janela
-      vim.cmd("bdelete " .. current_buf)                -- fecha o buffer
-    end, "Close Window and Buffer" },
-    o = { ":only<CR>", "Close Other Windows" },
-    q = { ":q<CR>", "Quit Window" },
-  },
+  -- Janelas e Layouts
+  { "<leader>ws", function()
+      vim.cmd("split")
+      vim.cmd("enew")
+    end, desc = "Horizontal Split (Empty)" },
+  { "<leader>wv", function()
+      vim.cmd("vsplit")
+      vim.cmd("enew")
+    end, desc = "Vertical Split (Empty)" },
+  { "<leader>wc", function()
+      local current_buf = vim.api.nvim_get_current_buf()
+      vim.cmd("close")
+      vim.cmd("bdelete " .. current_buf)
+    end, desc = "Close Window and Buffer" },
+  { "<leader>wo", ":only<CR>", desc = "Close Other Windows" },
+  { "<leader>wq", ":q<CR>", desc = "Quit Window" },
 
-  -- LSP e Terminal
-  l = {
-    name = "LSP/Run",
-    b = { ":ToggleTermSendCommand build<CR>", "Build Project" },
-    r = { ":ToggleTermSendCommand run<CR>", "Run Project" },
-    i = { ":LspInfo<CR>", "LSP Info" },
-    f = { ":Format<CR>", "Format Code" },
-  },
+  -- LSP e Terminais
+  { "<leader>lb", ":ToggleTermSendCommand build<CR>", desc = "Build Project" },
+  { "<leader>lr", ":ToggleTermSendCommand run<CR>", desc = "Run Project" },
+  { "<leader>li", ":LspInfo<CR>", desc = "LSP Info" },
+  { "<leader>lf", ":Format<CR>", desc = "Format Code" },
 
   -- Toggles
-  t = {
-    name = "Toggles",
-    z = { ":ZenMode<CR>", "Toggle Zen Mode" },
-    n = { ":Noice dismiss<CR>", "Dismiss Noice" },
-    t = { ":Twilight<CR>", "Toggle Twilight" },
-    g = { ":Gitsigns toggle_signs<CR>", "Toggle Git Signs" },
-    t = {
-      name = "Terminals",
-      t = { function() open_terminal("horizontal", "below") end, "Terminal Abaixo" },
-      a = { function() open_terminal("horizontal", "above") end, "Terminal Acima" },
-      c = { function() open_terminal("float") end, "Terminal Flutuante" },
-    },
-  },
+  { "<leader>tz", ":ZenMode<CR>", desc = "Toggle Zen Mode" },
+  { "<leader>tn", ":Noice dismiss<CR>", desc = "Dismiss Noice" },
+  { "<leader>tt", ":Twilight<CR>", desc = "Toggle Twilight" },
+  { "<leader>tg", ":Gitsigns toggle_signs<CR>", desc = "Toggle Git Signs" },
+  { "<leader>tb", function() open_terminal("horizontal", "below") end, desc = "Terminal Below" },
+  { "<leader>ta", function() open_terminal("horizontal", "above") end, desc = "Terminal Above" },
+  { "<leader>tc", function() open_terminal("float") end, desc = "Floating Terminal" },
 
   -- Git
-  g = {
-    name = "Git",
-    s = { ":Neogit<CR>", "Status" },
-    b = { ":Telescope git_branches<CR>", "Branches" },
-    c = { ":Neogit commit<CR>", "Commit" },
-    p = { ":Neogit push<CR>", "Push" },
-    l = { ":Neogit pull<CR>", "Pull" },
-  },
+  { "<leader>gs", ":Neogit<CR>", desc = "Git Status" },
+  { "<leader>gb", ":Telescope git_branches<CR>", desc = "Git Branches" },
+  { "<leader>gc", ":Neogit commit<CR>", desc = "Git Commit" },
+  { "<leader>gp", ":Neogit push<CR>", desc = "Git Push" },
+  { "<leader>gl", ":Neogit pull<CR>", desc = "Git Pull" },
 
-  -- Alterna o foco entre o buffer atual e o neotree
-  e = { function()
-    -- buffer atual é do Neotree ?
-    if vim.bo.filetype == "neo-tree" then
-      -- se for, volta para a janela anterior
-      vim.cmd('wincmd p')
-    else
-      -- se não foca no neotree
-      vim.cmd('Neotree focus')
-    end
-  end, "Toggle File Explorer" },
+  -- Alternar foco no Neotree
+  { "<leader>e", function()
+      if vim.bo.filetype == "neo-tree" then
+        vim.cmd("wincmd p")
+      else
+        vim.cmd("Neotree focus")
+      end
+    end, desc = "Toggle File Explorer" },
 
-
-  -- Diagnósticos e Debugging
-  d = {
-    name = "Diagnostics",
-    n = { vim.diagnostic.goto_next, "Next Diagnostic" },
-    p = { vim.diagnostic.goto_prev, "Previous Diagnostic" },
-    l = { ":Telescope diagnostics<CR>", "List Diagnostics" },
-  },
+  -- Diagnósticos
+  { "<leader>dn", vim.diagnostic.goto_next, desc = "Next Diagnostic" },
+  { "<leader>dp", vim.diagnostic.goto_prev, desc = "Previous Diagnostic" },
+  { "<leader>dl", ":Telescope diagnostics<CR>", desc = "List Diagnostics" },
 
   -- Pesquisas
-  s = {
-    name = "Search",
-    f = { ":Telescope find_files<CR>", "Find Files" },
-    g = { ":Telescope live_grep<CR>", "Grep Files" },
-    b = { ":Telescope buffers<CR>", "Find Buffers" },
-    h = { ":Telescope help_tags<CR>", "Help Tags" },
-  },
-}, { prefix = "<leader>" })
- 
+  { "<leader>sf", ":Telescope find_files<CR>", desc = "Find Files" },
+  { "<leader>sg", ":Telescope live_grep<CR>", desc = "Grep Files" },
+  { "<leader>sb", ":Telescope buffers<CR>", desc = "Find Buffers" },
+  { "<leader>sh", ":Telescope help_tags<CR>", desc = "Help Tags" },
+})

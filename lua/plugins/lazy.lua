@@ -121,6 +121,7 @@ require('lazy').setup({
 
   {
     "folke/which-key.nvim",
+    dependencies = "echasnovski/mini.icons",
     lazy = true,
     event = "VeryLazy",
     
@@ -210,13 +211,8 @@ require('lazy').setup({
           end,
         },
         mapping = cmp.mapping.preset.insert {
-          ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-          ['<C-f>'] = cmp.mapping.scroll_docs(4),
-          ['<C-Space>'] = cmp.mapping.complete(),
-          ['<CR>'] = cmp.mapping.confirm {
-            behavior = cmp.ConfirmBehavior.Replace,
-            select = true,
-          },
+          ['<C-Space>'] = cmp.mapping.complete(), -- Mantém para autocomplete
+          ['<CR>'] = cmp.mapping.confirm { behavior = cmp.ConfirmBehavior.Replace, select = true },
           ['<Tab>'] = cmp.mapping(function(fallback)
             if cmp.visible() then
               cmp.select_next_item()
@@ -236,6 +232,7 @@ require('lazy').setup({
             end
           end, { 'i', 's' }),
         },
+        
         sources = {
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
@@ -272,7 +269,9 @@ require('lazy').setup({
         enable_git_status = true,
       enable_diagnostics = true,
         filesystem = {
-          follow_current_file = true,
+          follow_current_file = {
+            enabled = true, -- This will find and focus the file in the active buffer every time
+          },
           hijack_netrw = true,
           use_libuv_file_watcher = true,
           window = {
@@ -327,6 +326,11 @@ require('lazy').setup({
   },
   
   
+  -- {
+  --   "goolord/alpha-nvim",
+  --   lazy = false, -- Garantir que ele carregue no início
+    
+  -- },
   
 
   {

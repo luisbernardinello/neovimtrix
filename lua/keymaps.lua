@@ -1,3 +1,8 @@
+-- Evita que <Space> tenha comportamento padrão
+vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
+vim.g.mapleader = " "  -- Define <Space> como <leader>
+
+
 vim.api.nvim_set_keymap("i", "jj", "<Esc>", {noremap=false})
 -- twilight
 vim.api.nvim_set_keymap("n", "tw", ":Twilight<enter>", {noremap=false})
